@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  application:
+    build:
+      context: .
+      dockerfile: app.dockerfile
+    container_name: user-api
+    restart: always
+    ports:
+      - "8080:8080"
+    deploy:
+      replicas: 1
+    networks:
+      common:
+  redis-cache:
+    image: redis@sha256:ae32baf75c2d3bf1de4b506980e0e98206c3837f084ce4092be55aed69eb111e
+    container_name: redis-cache
+    restart: always
+    ports:
+      - "6379:6379"
+    deploy:
+      replicas: 1
+    networks:
+      common:
+  postgresql:
+    image: postgres@sha256:4078d653e10cf827d7d0abe46a5cad4aa6d4db1fb8f982f7bb094db3576840c9
+    container_name: postgresql
+    restart: always
+    ports:
+      - "5432:5432"
+    deploy:
+      replicas: 1
+    environment:
+      POSTGRES_PASSWORD: does_not_matter_here
+    networks:
+      common:
+
+networks:
+  common:
+    driver: bridge
