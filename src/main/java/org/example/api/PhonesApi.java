@@ -1,8 +1,8 @@
 package org.example.api;
 
-import org.example.api.request.PhoneNumberAddRequest;
-import org.example.api.request.RemovePhoneNumberRequest;
-import org.example.api.request.UpdatePhoneNumberRequest;
+import org.example.api.request.phones.PhoneNumberAddRequest;
+import org.example.api.request.phones.RemovePhoneNumberRequest;
+import org.example.api.request.phones.UpdatePhoneNumberRequest;
 import org.example.service.UserService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;

@@ -9,6 +9,7 @@ import javax.persistence.OneToOne;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 @Data
@@ -26,5 +27,6 @@ public class PhoneData {
 
     @OneToOne
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
     private User user;
 }

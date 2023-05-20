@@ -1,6 +1,8 @@
 package org.example.filter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.FilterChain;
@@ -31,7 +33,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @PostConstruct
     private void init() {
-        this.parser = Jwts.parser().setSigningKey(signingKey);
+        this.parser = Jwts.parser().setSigningKey(
+          Base64.getEncoder().encode(signingKey.getBytes(StandardCharsets.UTF_8))
+        );
     }
 
     @Override
@@ -69,6 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             log.warn("Unexpected error occurred", e);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return;
         }
 
         filterChain.doFilter(request, response);
