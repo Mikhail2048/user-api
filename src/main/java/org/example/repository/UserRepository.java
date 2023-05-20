@@ -16,6 +16,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
     )
     boolean existByPhoneNumber(String phone);
 
+    //language=sql
+    @Query(
+      value = "SELECT EXISTS(SELECT * FROM users u INNER JOIN email_data e ON u.id = e.user_id WHERE e.email = :email)",
+      nativeQuery = true
+    )
+    boolean existByEmail(String email);
+
     @EntityGraph("withPhones")
-    Optional<User> findByIdWithPhones(Long id) ;
+    Optional<User> findByIdWithPhones(Long id);
+
+    @EntityGraph("withEmails")
+    Optional<User> findByIdWithEmails(Long id);
 }

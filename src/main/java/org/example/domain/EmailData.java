@@ -8,8 +8,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 @Data
+@Accessors(chain = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 public class EmailData {
