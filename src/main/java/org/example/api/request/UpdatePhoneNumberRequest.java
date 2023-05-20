@@ -7,7 +7,7 @@ import javax.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class UpdatePhoneNumberRequest {
+public class UpdatePhoneNumberRequest implements UserIdRequest {
 
     @NotNull
     private Long userId;

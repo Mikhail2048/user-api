@@ -7,7 +7,7 @@ import javax.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class RemovePhoneNumberRequest {
+public class RemovePhoneNumberRequest implements UserIdRequest {
 
     @NotEmpty
     @Size(max = 13)
