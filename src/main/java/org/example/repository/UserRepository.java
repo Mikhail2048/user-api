@@ -1,5 +1,6 @@
 package org.example.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.example.domain.User;
@@ -9,6 +10,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
+
+    @Query(
+      value = "SELECT u.*, a.* FROM users u INNER JOIN accounts a ON a.user_id = u.id",
+      nativeQuery = true
+    )
+    List<User> findAllWithAccounts();
 
     Optional<User> findByName(String name);
 

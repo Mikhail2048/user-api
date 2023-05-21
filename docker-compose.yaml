@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: app.dockerfile
     container_name: user-api
+    environment:
+      POD_NAME: assume_some_pod_name_inside_k8
     restart: always
     ports:
       - "8080:8080"

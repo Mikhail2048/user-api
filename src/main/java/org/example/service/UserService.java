@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 import javax.persistence.criteria.Join;
 
@@ -44,9 +43,19 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    @Transactional
+    public void updateUserInDb(User user) {
+        userRepository.save(user);
+    }
+
     @Transactional(readOnly = true)
     public User findByUsername(String username) {
         return userRepository.findByName(username).orElseThrow(() -> new UserNotFoundException(username));
+    }
+
+    @Transactional(readOnly = true)
+    public List<User> findAllWithBalances() {
+        return userRepository.findAllWithAccounts();
     }
 
     @Transactional(readOnly = true)
