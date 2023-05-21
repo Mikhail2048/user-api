@@ -11,11 +11,19 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
+    //language=sql
     @Query(
       value = "SELECT u.*, a.* FROM users u INNER JOIN accounts a ON a.user_id = u.id",
       nativeQuery = true
     )
     List<User> findAllWithAccounts();
+
+    //language=sql
+    @Query(
+      value = "SELECT u.*, a.* FROM users u INNER JOIN accounts a ON a.user_id = u.id WHERE u.id = :id",
+      nativeQuery = true
+    )
+    Optional<User> findByIdWithAccount(Long id);
 
     Optional<User> findByName(String name);
 
@@ -34,7 +42,6 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     boolean existByEmail(String email);
 
     //language=sql
-    @EntityGraph("withPhones")
     @Query(
       value = "SELECT u.*, pd.* FROM users u INNER JOIN phone_data pd ON pd.user_id = u.id WHERE u.id = :id",
       nativeQuery = true
@@ -42,7 +49,6 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     Optional<User> findByIdWithPhones(Long id);
 
     //language=sql
-    @EntityGraph("withEmails")
     @Query(
       value = "SELECT u.*, ed.* FROM users u INNER JOIN email_data ed ON ed.user_id = u.id WHERE u.id = :id",
       nativeQuery = true

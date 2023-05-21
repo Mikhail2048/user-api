@@ -1,12 +1,15 @@
 package org.example.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.persistence.criteria.Join;
 
+import org.example.api.request.MoneyTransferRequest;
 import org.example.api.request.UserSearchRequest;
 import org.example.api.request.emails.EmailAddRequest;
 import org.example.api.request.phones.PhoneNumberAddRequest;
@@ -19,6 +22,7 @@ import org.example.domain.PhoneData;
 import org.example.domain.User;
 import org.example.exception.ClientSideException;
 import org.example.exception.EmailIsAlreadyInUseException;
+import org.example.exception.InsufficientFundsException;
 import org.example.exception.NoEmailLeftException;
 import org.example.exception.NoPhoneNumberLeftException;
 import org.example.exception.PhoneNumberIsAlreadyInUseException;
@@ -56,6 +60,26 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<User> findAllWithBalances() {
         return userRepository.findAllWithAccounts();
+    }
+
+    @Transactional(readOnly = true)
+    public User findByIdWithBalance(Long id) {
+        return userRepository.findByIdWithAccount(id).orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    @Transactional
+    public void performMoneyTransfer(MoneyTransferRequest request) {
+        User from = findByIdWithBalance(request.getFromUserId());
+        BigDecimal afterSubtraction = from.getAccount().getBalance().subtract(request.getAmount());
+        if (afterSubtraction.signum() < 0) {
+            log.info("Impossible to subtract money : {} from user with id : {}. Not enough funds", request.getAmount(), request.getFromUserId());
+            throw new InsufficientFundsException(request.getUserId(), request.getAmount());
+        }
+        User to = findByIdWithBalance(request.getToUserId());
+        from.getAccount().setBalance(afterSubtraction);
+        to.getAccount().setBalance(to.getAccount().getBalance().add(request.getAmount()));
+        userRepository.save(from);
+        userRepository.save(to);
     }
 
     @Transactional(readOnly = true)
