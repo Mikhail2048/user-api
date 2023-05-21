@@ -11,6 +11,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -65,7 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             Claims claims = parser.parseClaimsJws(authorizationHeader).getBody();
 
-            if (!StringUtils.hasText(claims.getSubject())) {
+            if (!StringUtils.hasText(claims.get("USER_ID", String.class))) {
                 Long userId = Long.parseLong(claims.getSubject());
                 log.info("Set userId : '{}' for thread : {}", userId, Thread.currentThread().getName());
                 SecurityContextHolder.setUserId(userId);
@@ -77,5 +80,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        return request.getRequestURI().equals("/login");
     }
 }

@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
+    Optional<User> findByName(String name);
+
     //language=sql
     @Query(
       value = "SELECT EXISTS(SELECT * FROM users u INNER JOIN phone_data pd ON u.id = pd.user_id WHERE pd.phone = :phone)",

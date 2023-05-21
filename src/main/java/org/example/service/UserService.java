@@ -45,6 +45,11 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
+    public User findByUsername(String username) {
+        return userRepository.findByName(username).orElseThrow(() -> new UserNotFoundException(username));
+    }
+
+    @Transactional(readOnly = true)
     public Page<User> findUsersByRequest(UserSearchRequest request, PageRequest pageRequest) {
         Specification<User> specification = null;
 
