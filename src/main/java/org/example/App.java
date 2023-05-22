@@ -12,8 +12,3 @@ public class App {
         SpringApplication.run(App.class, args);
     }
 }
-
-@ConditionalOnProperty(value = "scheduling.enabled", matchIfMissing = true)
-@Configuration
-@EnableScheduling
-class SchedulingConfiguration { }

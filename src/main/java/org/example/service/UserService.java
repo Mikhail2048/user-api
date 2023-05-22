@@ -1,5 +1,7 @@
 package org.example.service;
 
+import static org.example.config.CacheConfiguration.USERS_CACHE;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -16,6 +18,7 @@ import org.example.api.request.emails.UpdateEmailRequest;
 import org.example.api.request.phones.PhoneNumberAddRequest;
 import org.example.api.request.phones.RemovePhoneNumberRequest;
 import org.example.api.request.phones.UpdatePhoneNumberRequest;
+import org.example.config.CacheConfiguration;
 import org.example.domain.EmailData;
 import org.example.domain.PhoneData;
 import org.example.domain.User;
@@ -27,6 +30,10 @@ import org.example.exception.NoPhoneNumberLeftException;
 import org.example.exception.PhoneNumberIsAlreadyInUseException;
 import org.example.exception.UserNotFoundException;
 import org.example.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -49,12 +56,17 @@ public class UserService {
 
     private final EmailService emailService;
 
+    @Autowired
+    private Cache usersCache;
+
     @Transactional
+    @CacheEvict(value = USERS_CACHE, key = "user#id")
     public void updateUserInDb(User user) {
         userRepository.save(user);
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = USERS_CACHE)
     public User findByUsername(String username) {
         return userRepository.findByName(username).orElseThrow(() -> new UserNotFoundException(username));
     }
@@ -82,6 +94,8 @@ public class UserService {
         to.getAccount().setBalance(to.getAccount().getBalance().add(request.getAmount()));
         userRepository.save(from);
         userRepository.save(to);
+        usersCache.evict(from.getId());
+        usersCache.evict(to.getId());
     }
 
     @Transactional(readOnly = true)
@@ -145,12 +159,14 @@ public class UserService {
 
     @Transactional(readOnly = true)
     @NonNull
+    @Cacheable(USERS_CACHE)
     public User findUserWithPhones(Long id) {
         return this.userRepository.findWithPhonesById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Transactional(readOnly = true)
     @NonNull
+    @Cacheable(USERS_CACHE)
     public User findUserWithEmails(Long id) {
         return this.userRepository.findByIdWithEmails(id).orElseThrow(() -> new UserNotFoundException(id));
     }
@@ -164,6 +180,7 @@ public class UserService {
             throw new NoPhoneNumberLeftException(request.getUserId(), request.getPhoneNumber());
         }
         this.phoneService.removePhoneFromUser(request.getUserId(), request.getPhoneNumber());
+        this.usersCache.evict(request.getUserId());
     }
 
     @Transactional
@@ -175,6 +192,7 @@ public class UserService {
             throw new NoEmailLeftException(request.getUserId(), request.getEmail());
         }
         this.emailService.removeEmailFromUser(request.getUserId(), request.getEmail());
+        this.usersCache.evict(request.getUserId());
     }
 
     @Transactional
@@ -194,6 +212,7 @@ public class UserService {
             }
         });
         this.userRepository.save(user);
+        this.usersCache.evict(user.getId());
     }
 
     @Transactional
@@ -213,6 +232,7 @@ public class UserService {
             }
         });
         this.userRepository.save(user);
+        this.usersCache.evict(user.getId());
     }
 
     @Transactional
@@ -221,6 +241,7 @@ public class UserService {
         User user = this.findUserWithPhones(request.getUserId());
         user.getPhoneNumbers().add(new PhoneData().setPhone(request.getPhoneNumber()).setUser(user));
         userRepository.save(user);
+        this.usersCache.evict(user.getId());
     }
 
     @Transactional
@@ -229,6 +250,7 @@ public class UserService {
         User user = this.findUserWithEmails(request.getUserId());
         user.getEmails().add(new EmailData().setEmail(request.getEmail()).setUser(user));
         userRepository.save(user);
+        this.usersCache.evict(user.getId());
     }
 
     private void checkPhoneIsNotOccupied(String phone) {
