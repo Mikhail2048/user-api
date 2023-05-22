@@ -84,6 +84,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return request.getRequestURI().equals("/login");
+        return request.getRequestURI().equals("/login")
+          || request.getRequestURI().contains("/swagger")
+          || request.getRequestURI().contains("/api/v2/api-docs")
+          || request.getRequestURI().contains("v2/api-docs");
     }
 }

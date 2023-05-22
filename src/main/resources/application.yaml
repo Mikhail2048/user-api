@@ -3,3 +3,6 @@ spring:
     url: jdbc:postgresql://postgresql:5432/postgres
     username: postgres
     password: does_not_matter_here
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher

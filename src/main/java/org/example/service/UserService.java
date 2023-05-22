@@ -60,7 +60,7 @@ public class UserService {
     private Cache usersCache;
 
     @Transactional
-    @CacheEvict(value = USERS_CACHE, key = "user#id")
+    @CacheEvict(value = USERS_CACHE, key = "#user.id")
     public void updateUserInDb(User user) {
         userRepository.save(user);
     }
