@@ -4,6 +4,7 @@ import org.example.api.request.phones.PhoneNumberAddRequest;
 import org.example.api.request.phones.RemovePhoneNumberRequest;
 import org.example.api.request.phones.UpdatePhoneNumberRequest;
 import org.example.service.UserService;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,19 +21,19 @@ public class PhonesApi extends AbstractApiController {
     private final UserService userService;
 
     @PutMapping("/add")
-    public void addPhoneNumberToUser(@RequestBody PhoneNumberAddRequest request) {
+    public void addPhoneNumberToUser(@RequestBody @Validated PhoneNumberAddRequest request) {
         checkUserIdBeforeRequest(request);
         userService.addPhoneNumberToUser(request);
     }
 
     @DeleteMapping
-    public void removePhoneNumber(@RequestBody RemovePhoneNumberRequest request) {
+    public void removePhoneNumber(@RequestBody @Validated RemovePhoneNumberRequest request) {
         checkUserIdBeforeRequest(request);
         userService.removePhoneNumber(request);
     }
 
     @PutMapping("/update")
-    public void updatePhoneNumber(@RequestBody UpdatePhoneNumberRequest request) {
+    public void updatePhoneNumber(@RequestBody @Validated UpdatePhoneNumberRequest request) {
         checkUserIdBeforeRequest(request);
         userService.updatePhoneNumber(request);
     }

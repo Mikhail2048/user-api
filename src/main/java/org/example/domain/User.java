@@ -23,12 +23,6 @@ import lombok.ToString;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "users")
-@NamedEntityGraphs(
-  value = {
-    @NamedEntityGraph(name = "withPhones", attributeNodes = @NamedAttributeNode("phoneNumbers")),
-    @NamedEntityGraph(name = "withEmails", attributeNodes = @NamedAttributeNode("emails"))
-  }
-)
 public class User {
 
     @Id

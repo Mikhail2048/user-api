@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @PostConstruct
     private void init() {
         this.parser = Jwts.parser().setSigningKey(
-          Base64.getEncoder().encode(signingKey.getBytes(StandardCharsets.UTF_8))
+          signingKey.getBytes(StandardCharsets.UTF_8)
         );
     }
 
@@ -74,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.setUserId(userId);
             }
         } catch (Exception e) {
-            log.warn("Unexpected error occurred", e);
+            log.warn("Unexpected error occurred : {}", e.getMessage());
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return;
         }

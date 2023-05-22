@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.example.domain.User;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -46,7 +45,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
       value = "SELECT u.*, pd.* FROM users u INNER JOIN phone_data pd ON pd.user_id = u.id WHERE u.id = :id",
       nativeQuery = true
     )
-    Optional<User> findByIdWithPhones(Long id);
+    Optional<User> findWithPhonesById(Long id);
 
     //language=sql
     @Query(

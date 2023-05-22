@@ -10,6 +10,7 @@ import org.example.api.response.UserDto;
 import org.example.mapper.UserMapper;
 import org.example.service.UserService;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,7 +33,7 @@ public class UserApi extends AbstractApiController {
     public List<UserDto> findUsersBySearchForm(
                                             @RequestParam(name = "page", required = false) Integer page,
                                             @RequestParam(name = "pageSize", required = false) Integer pageSize,
-                                            UserSearchRequest request) {
+                                            @Validated UserSearchRequest request) {
         return userService.findUsersByRequest(
                 request,
                 PageRequest.of(
@@ -46,7 +47,7 @@ public class UserApi extends AbstractApiController {
     }
 
     @PutMapping
-    public void transferMoney(@RequestBody MoneyTransferRequest request) {
+    public void transferMoney(@RequestBody @Validated MoneyTransferRequest request) {
         super.checkUserIdBeforeRequest(request);
         userService.performMoneyTransfer(request);
     }

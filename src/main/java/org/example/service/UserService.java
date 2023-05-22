@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import javax.persistence.criteria.Join;
 
@@ -46,6 +45,9 @@ import lombok.extern.slf4j.Slf4j;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PhoneService phoneService;
+
+    private final EmailService emailService;
 
     @Transactional
     public void updateUserInDb(User user) {
@@ -144,7 +146,7 @@ public class UserService {
     @Transactional(readOnly = true)
     @NonNull
     public User findUserWithPhones(Long id) {
-        return this.userRepository.findByIdWithPhones(id).orElseThrow(() -> new UserNotFoundException(id));
+        return this.userRepository.findWithPhonesById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Transactional(readOnly = true)
@@ -158,9 +160,10 @@ public class UserService {
         User user = this.findUserWithPhones(request.getUserId());
         user.getPhoneNumbers().removeIf(it -> Objects.equals(it.getPhone(), request.getPhoneNumber()));
         if (CollectionUtils.isEmpty(user.getPhoneNumbers())) {
+            log.warn("Unable to remove phone '{}' from user '{}' no phones would left", request.getPhoneNumber(), request.getUserId());
             throw new NoPhoneNumberLeftException(request.getUserId(), request.getPhoneNumber());
         }
-        this.userRepository.save(user);
+        this.phoneService.removePhoneFromUser(request.getUserId(), request.getPhoneNumber());
     }
 
     @Transactional
@@ -168,21 +171,21 @@ public class UserService {
         User user = this.findUserWithEmails(request.getUserId());
         user.getEmails().removeIf(it -> Objects.equals(it.getEmail(), request.getEmail()));
         if (CollectionUtils.isEmpty(user.getEmails())) {
+            log.warn("Unable to remove email '{}' from user '{}' no emails would left", request.getEmail(), request.getUserId());
             throw new NoEmailLeftException(request.getUserId(), request.getEmail());
         }
-        this.userRepository.save(user);
+        this.emailService.removeEmailFromUser(request.getUserId(), request.getEmail());
     }
 
     @Transactional
     public void updatePhoneNumber(UpdatePhoneNumberRequest request) {
 
         if (request.getPhoneNumberOld().equals(request.getPhoneNumberNew())) {
+            log.warn("unable to change phone number onto itself, request : {}", request);
             throw new ClientSideException("Cannot change number onto itself");
         }
 
-        if (this.userRepository.existByPhoneNumber(request.getPhoneNumberNew())) {
-            throw new PhoneNumberIsAlreadyInUseException(request.getPhoneNumberNew());
-        }
+        checkPhoneIsNotOccupied(request.getPhoneNumberNew());
 
         User user = this.findUserWithPhones(request.getUserId());
         user.getPhoneNumbers().forEach(phoneData -> {
@@ -197,12 +200,11 @@ public class UserService {
     public void updateEmail(UpdateEmailRequest request) {
 
         if (request.getEmailOld().equals(request.getEmailNew())) {
+            log.warn("unable to change email onto itself, request : {}", request);
             throw new ClientSideException("Cannot change number onto itself");
         }
 
-        if (this.userRepository.existByEmail(request.getEmailNew())) {
-            throw new EmailIsAlreadyInUseException(request.getEmailNew());
-        }
+        checkEmailIsNotOccupied(request.getEmailNew());
 
         User user = this.findUserWithEmails(request.getUserId());
         user.getEmails().forEach(emailData -> {
@@ -215,9 +217,7 @@ public class UserService {
 
     @Transactional
     public void addPhoneNumberToUser(PhoneNumberAddRequest request) {
-        if (userRepository.existByPhoneNumber(request.getPhoneNumber())) {
-            throw new PhoneNumberIsAlreadyInUseException(request.getPhoneNumber());
-        }
+        checkPhoneIsNotOccupied(request.getPhoneNumber());
         User user = this.findUserWithPhones(request.getUserId());
         user.getPhoneNumbers().add(new PhoneData().setPhone(request.getPhoneNumber()).setUser(user));
         userRepository.save(user);
@@ -225,11 +225,23 @@ public class UserService {
 
     @Transactional
     public void addEmailToUser(EmailAddRequest request) {
-        if (userRepository.existByEmail(request.getEmail())) {
-            throw new EmailIsAlreadyInUseException(request.getEmail());
-        }
+        checkEmailIsNotOccupied(request.getEmail());
         User user = this.findUserWithEmails(request.getUserId());
         user.getEmails().add(new EmailData().setEmail(request.getEmail()).setUser(user));
         userRepository.save(user);
+    }
+
+    private void checkPhoneIsNotOccupied(String phone) {
+        if (userRepository.existByPhoneNumber(phone)) {
+            log.warn("Phone : {} is already occupied", phone);
+            throw new PhoneNumberIsAlreadyInUseException(phone);
+        }
+    }
+
+    private void checkEmailIsNotOccupied(String email) {
+        if (userRepository.existByEmail(email)) {
+            log.warn("Email : {} is already occupied", email);
+            throw new EmailIsAlreadyInUseException(email);
+        }
     }
 }
