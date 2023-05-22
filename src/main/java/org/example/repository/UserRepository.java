@@ -3,9 +3,12 @@ package org.example.repository;
 import java.util.List;
 import java.util.Optional;
 
+import javax.persistence.LockModeType;
+
 import org.example.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
@@ -19,7 +22,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     //language=sql
     @Query(
-      value = "SELECT u.*, a.* FROM users u INNER JOIN accounts a ON a.user_id = u.id WHERE u.id = :id",
+      value = "SELECT u.*, a.* FROM users u INNER JOIN accounts a ON a.user_id = u.id WHERE u.id = :id FOR UPDATE",
       nativeQuery = true
     )
     Optional<User> findByIdWithAccount(Long id);

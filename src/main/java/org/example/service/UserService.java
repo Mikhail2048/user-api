@@ -11,10 +11,10 @@ import javax.persistence.criteria.Join;
 import org.example.api.request.MoneyTransferRequest;
 import org.example.api.request.UserSearchRequest;
 import org.example.api.request.emails.EmailAddRequest;
-import org.example.api.request.phones.PhoneNumberAddRequest;
 import org.example.api.request.emails.RemoveEmailRequest;
-import org.example.api.request.phones.RemovePhoneNumberRequest;
 import org.example.api.request.emails.UpdateEmailRequest;
+import org.example.api.request.phones.PhoneNumberAddRequest;
+import org.example.api.request.phones.RemovePhoneNumberRequest;
 import org.example.api.request.phones.UpdatePhoneNumberRequest;
 import org.example.domain.EmailData;
 import org.example.domain.PhoneData;
@@ -65,19 +65,19 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public User findByIdWithBalance(Long id) {
+    public User selectForUpdateByIdWithBalance(Long id) {
         return userRepository.findByIdWithAccount(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Transactional
     public void performMoneyTransfer(MoneyTransferRequest request) {
-        User from = findByIdWithBalance(request.getFromUserId());
+        User from = selectForUpdateByIdWithBalance(request.getFromUserId());
+        User to = selectForUpdateByIdWithBalance(request.getToUserId());
         BigDecimal afterSubtraction = from.getAccount().getBalance().subtract(request.getAmount());
         if (afterSubtraction.signum() < 0) {
             log.info("Impossible to subtract money : {} from user with id : {}. Not enough funds", request.getAmount(), request.getFromUserId());
             throw new InsufficientFundsException(request.getUserId(), request.getAmount());
         }
-        User to = findByIdWithBalance(request.getToUserId());
         from.getAccount().setBalance(afterSubtraction);
         to.getAccount().setBalance(to.getAccount().getBalance().add(request.getAmount()));
         userRepository.save(from);
